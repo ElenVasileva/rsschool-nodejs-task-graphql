@@ -166,7 +166,6 @@ export const mutationSchema = new GraphQLObjectType({
             },
             resolve: async (_, { id, dto }: { id: string, dto: { isMale: boolean, yearOfBirth: number, userId: string, memberTypeId: string } }, { prisma }: { prisma: PrismaClient }) => {
                 try {
-                    console.log('changeProfile: -------------------------------------------')
                     return await prisma.profile.update({
                         where: { id },
                         data: dto,
@@ -211,7 +210,6 @@ export const mutationSchema = new GraphQLObjectType({
                 dto: { type: ChangePostInput }
             },
             resolve: async (_, { id, dto }: { id: string, dto: { title: string, content: string, authorId: string } }, { prisma }: { prisma: PrismaClient }) => {
-                console.log('changePost: -------------------------------------------')
                 try {
                     return await prisma.post.update({
                         where: { id },
@@ -232,6 +230,45 @@ export const mutationSchema = new GraphQLObjectType({
             },
             resolve: async (_, { id }: { id: string }, { prisma }: { prisma: PrismaClient }) => {
                 await prisma.post.delete({ where: { id } })
+            },
+        },
+
+        subscribeTo: {
+            type: User,
+            args: {
+                userId: {
+                    type: UUIDType,
+                },
+                authorId: {
+                    type: UUIDType,
+                },
+            },
+            resolve: async (_, { userId, authorId }: { userId: string, authorId: string }, { prisma }: { prisma: PrismaClient }) => {
+                await prisma.subscribersOnAuthors.create({ data: { authorId, subscriberId: userId } })
+                const user = await prisma.user.findUnique({ where: { id: userId } })
+                return user
+            },
+        },
+
+        unsubscribeFrom: {
+            type: GraphQLBoolean,
+            args: {
+                userId: {
+                    type: UUIDType,
+                },
+                authorId: {
+                    type: UUIDType,
+                },
+            },
+            resolve: async (_, { userId, authorId }: { userId: string, authorId: string }, { prisma }: { prisma: PrismaClient }) => {
+                await prisma.subscribersOnAuthors.delete({
+                    where: {
+                        subscriberId_authorId: {
+                            subscriberId: userId,
+                            authorId
+                        },
+                    }
+                })
             },
         },
     }
