@@ -57,8 +57,6 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
                 resolve: async (_, { id }: { id: string }) => {
                   try {
                     const user = await fastify.prisma.user.findUnique({ where: { id } })
-                    console.log('   ---   user   ---')
-                    console.log(user)
                     return user
                   }
                   catch (error) { return new Error('error') }

@@ -3,10 +3,12 @@ import { UUIDType } from "./uuid.js";
 import { Profile } from "./profile.js";
 import { Post } from "./post.js";
 import { PrismaClient } from "@prisma/client";
+import { UserSubscribedTo } from "./userSubscribedTo.js";
+import { SubscribedToUser } from "./subscribedToUser.js";
 
 export const User = new GraphQLObjectType({
     name: 'User',
-    fields: {
+    fields: () => ({
         id: { type: UUIDType },
         name: { type: GraphQLString },
         balance: { type: GraphQLFloat },
@@ -17,7 +19,7 @@ export const User = new GraphQLObjectType({
                     return await prisma.profile.findUnique({ where: { userId: id } })
                 }
                 catch (error) {
-                    console.log(error)
+                    return new Error('error')
                 }
 
             },
@@ -29,9 +31,31 @@ export const User = new GraphQLObjectType({
                     return await prisma.post.findMany({ where: { authorId: id } })
                 }
                 catch (error) {
-                    console.log(error)
+                    return new Error('error')
                 }
             },
         },
-    }
+        userSubscribedTo: {
+            type: new GraphQLList(UserSubscribedTo),
+            resolve: async ({ id }: { id: string }, _args: unknown, { prisma }: { prisma: PrismaClient }) => {
+                try {
+                    return await prisma.subscribersOnAuthors.findMany({ where: { subscriberId: id } })
+                }
+                catch (error) {
+                    return new Error('error')
+                }
+            },
+        },
+        subscribedToUser: {
+            type: new GraphQLList(SubscribedToUser),
+            resolve: async ({ id }: { id: string }, _args: unknown, { prisma }: { prisma: PrismaClient }) => {
+                try {
+                    return await prisma.subscribersOnAuthors.findMany({ where: { authorId: id } })
+                }
+                catch (error) {
+                    return new Error('error')
+                }
+            },
+        }
+    })
 })

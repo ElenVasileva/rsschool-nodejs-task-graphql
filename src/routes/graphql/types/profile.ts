@@ -18,7 +18,7 @@ export const Profile = new GraphQLObjectType({
                     return await prisma.memberType.findUnique({ where: { id: memberTypeId } })
                 }
                 catch (error) {
-                    console.log(error)
+                    return new Error('error')
                 }
             },
         },
